@@ -197,7 +197,7 @@ public class Script
     }
 
 
-    // feathers and fields
+    // variables
     List<CoursePlan> CoursePlanList { get; set; }
 
     ObservableCollection<CoursePlan> CollCoursePlan { get; set; }
