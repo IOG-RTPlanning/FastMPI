@@ -265,50 +265,51 @@ public class Script
         if (!checkIfIsChecked)
         {
             StaticCollStructureTarget = null;
-            StaticCollResult = null; // czy potrzebne?
+            StaticCollResult = null;
             return;
-
-            CollStructureTarget = new ObservableCollection<StructureTarget>();
-            var StructuresTech = StructuresIntersect();
-            foreach (Structure slIntersect in StructuresTech)
-            {
-                // check if the structure is nor empty nither "Support"-type
-                if (slIntersect.IsEmpty | slIntersect.DicomType == "SUPPORT")
-                    continue;
-                CollStructureTarget.Add(new StructureTarget(slIntersect, false, false));
-            }
-
-            StaticCollStructureTarget = CollStructureTarget;
         }
+
+        CollStructureTarget = new ObservableCollection<StructureTarget>();
+        var StructuresTech = StructuresIntersect();
+        foreach (Structure slIntersect in StructuresTech)
+        {
+            // check if the structure is nor empty nither "Support"-type
+            if (slIntersect.IsEmpty | slIntersect.DicomType == "SUPPORT")
+                continue;
+            CollStructureTarget.Add(new StructureTarget(slIntersect, false, false));
+        }
+
+        StaticCollStructureTarget = CollStructureTarget;
+    }
 
         // find the intersection of structures for all plans
-        private IEnumerable<Structure> StructuresIntersect()
+    private IEnumerable<Structure> StructuresIntersect()
+    {
+        IEnumerable<CoursePlan> SelectedPlans = StaticCollCoursePlan.Where(plan => plan.IsCheckedPlan == true);
+        IEnumerable<Structure> Structures;
+        List<IEnumerable<Structure>> ListOfStructureLists = new List<IEnumerable<Structure>>();
+
+        foreach (CoursePlan plan in SelectedPlans)
         {
-            IEnumerable<CoursePlan> SelectedPlans = StaticCollCoursePlan.Where(plan => plan.IsCheckedPlan == true);
-            IEnumerable<Structure> Structures;
-            List<IEnumerable<Structure>> ListOfStructureLists = new List<IEnumerable<Structure>>();
-
-            foreach (CoursePlan plan in SelectedPlans)
-            {
-                Structures = plan.StructureSet.Structures;
-                ListOfStructureLists.Add(Structures);
-            }
-
-            List<IEnumerable<Structure>> SL = ListOfStructureLists;
-            IEnumerable<Structure> SLIntersect = SL.First();
-            if (SL.Count() > 1)
-            {
-                IEnumerable<string> SLIntersectID = from structure in SLIntersect select structure.Id;
-
-                foreach (IEnumerable<Structure> list in SL)
-                {
-                    IEnumerable<string> listID = from structure in list select structure.Id;
-                    SLIntersectID = listID.Intersect(SLIntersectID);
-                    SLIntersect = from structure in SLIntersect where SLIntersectID.Contains(structure.Id) select structure;
-                }
-            }
-            return (SLIntersect);
+            Structures = plan.StructureSet.Structures;
+            ListOfStructureLists.Add(Structures);
         }
+
+        List<IEnumerable<Structure>> SL = ListOfStructureLists;
+        IEnumerable<Structure> SLIntersect = SL.First();
+        if (SL.Count() > 1)
+        {
+            IEnumerable<string> SLIntersectID = from structure in SLIntersect select structure.Id;
+
+            foreach (IEnumerable<Structure> list in SL)
+            {
+                IEnumerable<string> listID = from structure in list select structure.Id;
+                SLIntersectID = listID.Intersect(SLIntersectID);
+                SLIntersect = from structure in SLIntersect where SLIntersectID.Contains(structure.Id) select structure;
+            }
+        }
+        return (SLIntersect);
+    }
 
 // the method is released when a user clicks the "Submit" button when the radiobutton "GI" is checked
     public void CalculateGIResults()
